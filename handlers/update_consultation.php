@@ -62,9 +62,7 @@ try {
             'chief_complaint' => $consultationDetails['chief_complaint'] ?? ''
         ]);
         
-        try {
-
-            
+        try {            
             // Create the medical record
             $medicalRecord->createRecord(
                 $consultationDetails['patient_id'],
