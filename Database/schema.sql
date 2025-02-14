@@ -294,17 +294,24 @@ CREATE TABLE medications (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- Prescriptions table
+-- Create prescriptions table to link medical records with medications
 CREATE TABLE prescriptions (
     id INT PRIMARY KEY AUTO_INCREMENT,
     medical_record_id INT NOT NULL,
     medication_id INT NOT NULL,
-    dosage VARCHAR(50) NOT NULL,
-    frequency VARCHAR(50) NOT NULL,
-    duration VARCHAR(50) NOT NULL,
-    notes TEXT,
+    dosage VARCHAR(100) NOT NULL, -- e.g., "1 tablet"
+    frequency VARCHAR(100) NOT NULL, -- e.g., "3 times a day"
+    duration VARCHAR(100) NOT NULL, -- e.g., "7 days"
+    instructions TEXT,
+    status ENUM('active', 'completed', 'cancelled') DEFAULT 'active',
+    created_by VARCHAR(36) NOT NULL,
+    updated_by VARCHAR(36),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (medical_record_id) REFERENCES medical_records(id),
-    FOREIGN KEY (medication_id) REFERENCES medications(id)
+    FOREIGN KEY (medication_id) REFERENCES medications(id),
+    FOREIGN KEY (created_by) REFERENCES users(id),
+    FOREIGN KEY (updated_by) REFERENCES users(id)  
 );
 
 -- Bills table
