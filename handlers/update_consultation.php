@@ -63,12 +63,7 @@ try {
         ]);
         
         try {
-            // Log the data before attempting to create the record
-            error_log("Attempting to create medical record with data:");
-            error_log("Patient ID: " . $consultationDetails['patient_id']);
-            error_log("Doctor ID: " . $consultationDetails['doctor_id']);
-            error_log("Consultation ID: " . $consultationId);
-            error_log("Medical Record Data: " . json_encode($medicalRecordData, JSON_PRETTY_PRINT));
+
             
             // Create the medical record
             $medicalRecord->createRecord(
