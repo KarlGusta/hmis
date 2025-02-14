@@ -1,0 +1,149 @@
+body {
+  font-family: "Bricolage Grotesque", sans-serif !important;
+  /* Change font to Bricolage Grotesque */
+  font-size: 16px !important;
+  /* Adjust the font size as needed */
+  background-color: #f5f5f5 !important;
+  /* Change background color to #212121 */
+  color: #191919;
+  /* Change text color to #CFCFCF */
+}
+
+.navbar-brand-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-left: -60px;
+}
+
+.sidebar-custom {
+  background-color: #191919 !important;
+}
+
+.button-custom {
+  background-color: #fa5b47 !important;
+  color: #f5f5f5 !important;
+}
+
+.button-outline-custom {
+  background-color: transparent;
+  color: #191919;
+  border-color: #191919;
+}
+
+.button-outline-custom:hover {
+  background-color: #fa5b47;
+  color: #f5f5f5;
+  border-color: #fa5b47;
+}
+
+.button-custom-black {
+  background-color: #191919 !important;
+  color: #f5f5f5 !important;
+}
+
+.button-custom-white {
+  background-color: #f5f5f5 !important;
+  color: #191919 !important;
+}
+
+.button-custom-sm {
+  background-color: #fa5b47 !important;
+  color: #f5f5f5 !important;
+  border-radius: 6px !important;
+}
+
+.button-custom-black-sm {
+  background-color: #191919 !important;
+  color: #f5f5f5 !important;
+  border-radius: 6px !important;
+}
+
+.button-custom-white-sm {
+  background-color: #f5f5f5 !important;
+  color: #191919 !important;
+  border-radius: 6px !important;
+}
+
+.footer .footer-text-small,
+.footer .footer-text-small * {
+  font-size: 14px !important;
+}
+
+.footer .list-inline-item,
+.footer .list-inline-item * {
+  font-size: 14px !important;
+}
+
+.navbar-custom {
+  background-color: #f5f5f5 !important;
+}
+
+.login-form-custom {
+  background-color: #191919 !important;
+  color: #191919 !important;
+}
+
+.login-form-text-custom {
+  background-color: #191919 !important;
+  color: #f5f5f5 !important;
+}
+
+.card-custom {
+  border: 1px solid #f5f5f5 !important;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2) !important;
+  border-radius: 12px !important;
+  padding: 15px !important;
+}
+
+/* To show holiday is disabled */
+.holiday {
+  background-color: #ffeded !important;
+  color: #f44336 !important;
+}
+
+@media (max-width: 768px) {
+  .hero h1 {
+    font-size: 1.5rem; /* Adjust the font size as needed */
+  }
+  .hero p {
+    font-size: 0.8rem; /* Adjust the font size as needed */
+  }
+  .cta-button {
+    font-size: 0.9rem; /* Adjust the font size as needed */
+  }
+}
+
+.navbar-dark {
+  color: #f5f5f5 !important;
+}
+
+.nav-link {
+  color: #f5f5f5 !important;
+}
+
+.nav-link:hover {
+  color: #fa5b47 !important;
+}
+
+.dropdown-menu {
+  background-color: #191919 !important;
+}
+
+.dropdown-item {
+  color: #f5f5f5 !important;
+}
+
+.dropdown-item:hover {
+  background-color: #fa5b47 !important;
+  color: #f5f5f5 !important;
+}
+
+.alert-success-custom {
+  background-color: #f5f5f5 !important;
+  color: #fa5b47 !important;
+}
+
+.alert-danger-custom {
+  background-color: #f5f5f5 !important;
+  color: #191919 !important;
+}

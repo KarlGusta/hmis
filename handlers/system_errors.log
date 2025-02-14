@@ -1,0 +1,5 @@
+2024-12-30 07:04:22 - Patient Registration Failed: Prepare statement failed: Unknown column 'first_name' in 'field list'
+2024-12-30 08:19:40 - Patient Registration Failed: Failed to prepare statement: Table 'hospital_management.medical_history' doesn't exist
+2024-12-30 08:19:53 - Patient Registration Failed: Failed to prepare statement: Table 'hospital_management.medical_history' doesn't exist
+2024-12-30 08:20:25 - Patient Registration Failed: Failed to prepare statement: Table 'hospital_management.medical_history' doesn't exist
+2024-12-30 08:22:03 - Patient Registration Failed: Failed to prepare statement: Table 'hospital_management.medical_history' doesn't exist
