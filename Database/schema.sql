@@ -136,33 +136,7 @@ CREATE TABLE IF NOT EXISTS patient_queue (
     FOREIGN KEY (called_by) REFERENCES users(id)
 );
 
--- Then create the consultations table
-CREATE TABLE IF NOT EXISTS consultations (
-    id VARCHAR(36) PRIMARY KEY,
-    queue_id VARCHAR(36) NOT NULL,
-    patient_id INT NOT NULL,
-    doctor_id VARCHAR(36) NOT NULL,
-    department_id VARCHAR(36) NOT NULL,
-    chief_complaint TEXT NOT NULL,
-    history_of_illness TEXT,
-    diagnosis TEXT,
-    treatment_plan TEXT,
-    prescription TEXT,
-    lab_requests TEXT,
-    follow_up_date DATE,
-    consultation_notes TEXT,
-    status ENUM('in_progress', 'completed', 'cancelled') DEFAULT 'in_progress',
-    start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    end_time TIMESTAMP NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (queue_id) REFERENCES patient_queue(id),
-    FOREIGN KEY (patient_id) REFERENCES patients(id),
-    FOREIGN KEY (doctor_id) REFERENCES users(id),
-    FOREIGN KEY (department_id) REFERENCES departments(id)
-);
-
--- Then create the medical_records table
+-- First create the medical_records table
 CREATE TABLE medical_records (
     id INT PRIMARY KEY AUTO_INCREMENT,
     patient_id INT NOT NULL,
@@ -183,9 +157,36 @@ CREATE TABLE medical_records (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (patient_id) REFERENCES patients(id),
     FOREIGN KEY (doctor_id) REFERENCES doctors(id),
-    FOREIGN KEY (consultation_id) REFERENCES consultations(id),
     FOREIGN KEY (created_by) REFERENCES users(id),
     FOREIGN KEY (updated_by) REFERENCES users(id)
+);
+
+-- Then create the consultations table
+CREATE TABLE IF NOT EXISTS consultations (
+    id VARCHAR(36) PRIMARY KEY,
+    queue_id VARCHAR(36) NOT NULL,
+    patient_id INT NOT NULL,
+    doctor_id VARCHAR(36) NOT NULL,
+    department_id VARCHAR(36) NOT NULL,
+    medical_record_id INT NULL,
+    chief_complaint TEXT NOT NULL,
+    history_of_illness TEXT,
+    diagnosis TEXT,
+    treatment_plan TEXT,
+    prescription TEXT,
+    lab_requests TEXT,
+    follow_up_date DATE,
+    consultation_notes TEXT,
+    status ENUM('in_progress', 'completed', 'cancelled') DEFAULT 'in_progress',
+    start_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    end_time TIMESTAMP NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (queue_id) REFERENCES patient_queue(id),
+    FOREIGN KEY (patient_id) REFERENCES patients(id),
+    FOREIGN KEY (doctor_id) REFERENCES users(id),
+    FOREIGN KEY (medical_record_id) REFERENCES medical_records(id),
+    FOREIGN KEY (department_id) REFERENCES departments(id)
 );
 
 -- Appointments table (place this AFTER doctors table creation)
@@ -294,17 +295,24 @@ CREATE TABLE medications (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- Prescriptions table
+-- Create prescriptions table to link medical records with medications
 CREATE TABLE prescriptions (
     id INT PRIMARY KEY AUTO_INCREMENT,
     medical_record_id INT NOT NULL,
     medication_id INT NOT NULL,
-    dosage VARCHAR(50) NOT NULL,
-    frequency VARCHAR(50) NOT NULL,
-    duration VARCHAR(50) NOT NULL,
-    notes TEXT,
+    dosage VARCHAR(100) NOT NULL, -- e.g., "1 tablet"
+    frequency VARCHAR(100) NOT NULL, -- e.g., "3 times a day"
+    duration VARCHAR(100) NOT NULL, -- e.g., "7 days"
+    instructions TEXT,
+    status ENUM('active', 'completed', 'cancelled') DEFAULT 'active',
+    created_by VARCHAR(36) NOT NULL,
+    updated_by VARCHAR(36),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (medical_record_id) REFERENCES medical_records(id),
-    FOREIGN KEY (medication_id) REFERENCES medications(id)
+    FOREIGN KEY (medication_id) REFERENCES medications(id),
+    FOREIGN KEY (created_by) REFERENCES users(id),
+    FOREIGN KEY (updated_by) REFERENCES users(id)  
 );
 
 -- Bills table
@@ -727,7 +735,7 @@ CREATE INDEX idx_queue_history_queue ON queue_history(queue_id);
 CREATE INDEX idx_patient_search ON patients(first_name, last_name, email, phone);
 CREATE INDEX idx_appointment_date ON appointments(appointment_datetime);
 CREATE INDEX idx_bills_date ON bills(bill_date);
-CREATE INDEX idx_medical_records_treatment_status ON medical_records(treatment_status);
+CREATE INDEX idx_medical_records_status ON medical_records(status);
 
 -- Add indexes for performance
 CREATE INDEX idx_medications_category ON medications(category_id);
@@ -760,16 +768,6 @@ CREATE INDEX idx_user_activities_user ON user_activities(user_id);
 CREATE INDEX idx_user_activities_type ON user_activities(activity_type);
 CREATE INDEX idx_user_activities_entity  ON user_activities(entity_type, entity_id);
 CREATE INDEX idx_user_activities_date ON user_activities(created_at);
-
--- Insert admin user
-INSERT INTO users (id, username, password_hash, email, role) 
-VALUES (
-    UUID(), -- generates a unique ID
-    'test',
-    '$2a$12$vNII2SyMqyEtcAUcQxCc6.nysW4s2LCaGpMsM3d6UvCBDIM/3EbRq',
-    'test@test.com',
-    'admin'
-);
 
 -- Insert insurance providers
 INSERT INTO insurance_providers (provider_id, provider_name, contact_number, email, website, address, coverage_types, policy_details, status)
@@ -842,59 +840,6 @@ INSERT INTO departments (id, code, name, description, status) VALUES
 (UUID(), 'LAB', 'Laboratory Services', 'Conducts diagnostic tests and analyses.', 'active'),
 (UUID(), 'PHARM', 'Pharmacy', 'Dispenses medications and provides pharmaceutical care.', 'active'),
 (UUID(), 'GENMED', 'General Medicine', 'Provides primary and non-specialized care for general medical conditions.', 'active');
-
--- First, insert a user record for the doctor
-INSERT INTO users (id, username, email, password_hash, role) 
-VALUES (
-    'doc-001', -- Using a fixed ID for reference
-    'dr.smith',
-    'dr.smith@hospital.com',
-    '$2a$12$vNII2SyMqyEtcAUcQxCc6.nysW4s2LCaGpMsM3d6UvCBDIM/3EbRq',
-    'doctor'
-);
-
--- Then, insert the doctor record
-INSERT INTO doctors (
-    id,
-    user_id,
-    first_name,
-    last_name,
-    gender,
-    date_of_birth,
-    license_number,
-    specialization,
-    qualification
-) VALUES (
-    1, -- This is the id we'll reference in doctor_schedules
-    'doc-001',
-    'John',
-    'Smith',
-    'male',
-    '1980-01-01',
-    'LIC123456',
-    'General Medicine',
-    'MD'
-);
-
--- Now the doctor_schedules insert should work
-INSERT INTO doctor_schedules
-(doctor_id, day_of_week, start_time, end_time, break_start, break_end, max_appointments, slot_duration)
-VALUES
-(1, 1, '09:00:00', '17:00:00', '13:00:00', '14:00:00', 16, 30), -- Monday
-(1, 2, '09:00:00', '17:00:00', '13:00:00', '14:00:00', 16, 30), -- Tuesday
-(1, 3, '09:00:00', '17:00:00', '13:00:00', '14:00:00', 16, 30), -- Wednesday
-(1, 4, '09:00:00', '17:00:00', '13:00:00', '14:00:00', 16, 30), -- Thursday
-(1, 5, '09:00:00', '15:00:00', '13:00:00', '14:00:00', 12, 30); -- Friday
-
--- Insert sample specializations
-INSERT INTO doctor_specialties (doctor_id, specialty_name, is_primary) VALUES
-(1, 'Cardiology', true),
-(1, 'Internal Medicine', false),
-(2, 'Pediatrics', true),
-(2, 'Neonatology', false);
-
--- Insert consultation rooms
-INSERT INTO consultation_rooms (room_number) VALUES (1), (2), (3); -- Add as many rooms as needed 
 
 -- Sample trigger to update doctor status when leave is approved
 DELIMITER //

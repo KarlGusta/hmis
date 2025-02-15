@@ -46,7 +46,7 @@ class Consultation {
     }
 
 
-    public function startConsultation($queueId, $roomId) {
+    public function startConsultation($queueId, $roomId, $medicalRecordId) {
         try {
             $this->db->beginTransaction();
 
@@ -58,8 +58,8 @@ class Consultation {
                 throw new Exception("Queue record not found");
             }
 
-            // Create consultation record
-            $consultationId = $this->createConsultation($queue);
+            // Create consultation record with medical_record_id
+            $consultationId = $this->createConsultation($queue, $medicalRecordId);
 
             // Update queue status
             $query = "UPDATE patient_queue
@@ -129,7 +129,7 @@ class Consultation {
         }
     }
 
-    private function createConsultation($queue) {
+    private function createConsultation($queue, $medicalRecordId) {
         // Generate UUID using PHP's built-in functions
         $consultationId = sprintf('%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
             mt_rand(0, 0xffff), mt_rand(0, 0xffff),
@@ -145,9 +145,11 @@ class Consultation {
                     patient_id,
                     doctor_id,
                     department_id,
+                    medical_record_id,
                     chief_complaint,
                     status
                     ) VALUES (
+                    ?,
                     ?,
                     ?,
                     ?,
@@ -158,11 +160,12 @@ class Consultation {
                     )";
 
         $params = [
-            $consultationId, // Use the generated UUID
+            $consultationId,
             $queue['id'],
             $queue['patient_id'],
             $queue['called_by'],
             $queue['department_id'],
+            $medicalRecordId,
             $queue['symptoms']
         ];            
 
@@ -171,7 +174,7 @@ class Consultation {
             throw new Exception("Failed to create consultation record");
         }
 
-        return $consultationId; // Return the UUID directly
+        return $consultationId;
     }
 
     public function updateConsultation($consultationId, $data) {

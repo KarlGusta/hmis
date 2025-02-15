@@ -1,77 +1,75 @@
 <?php
-require_once '../config/database.php';
+session_start();
 require_once '../classes/Prescription.php';
+require_once '../config/database.php';
 
 $db = new DatabaseConnection();
 $prescription = new Prescription($db);
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $action = $_POST['action'] ?? null;
+$action = $_POST['action'] ?? '';
+$prescriptionId = $_POST['prescription_id'] ?? null;
+$medicalRecordId = $_POST['medical_record_id'] ?? null;
 
-    try {
-        switch ($action) {
-            case 'create':
-                $consultationId = $_POST['consultation_id'];
-                $medications = $_POST['medications'] ?? [];
-                $dosages = $_POST['dosages'] ?? [];
-                $frequencies = $_POST['frequencies'] ?? [];
-                $durations = $_POST['durations'] ?? [];
-                $quantities = $_POST['quantities'] ?? [];
-                $specialInstructions = $_POST['special_instructions'] ?? [];
-                $medicalRecordId = $_POST['medical_record_id'];
-
-                $prescriptionData = [];
-                for ($i = 0; $i < count($medications); $i++) {
-                    $prescriptionData[] = [
-                        'medical_record_id' => $medicalRecordId,
-                        'medication_id' => $medications[$i],
-                        'dosage' => $dosages[$i],
-                        'frequency' => $frequencies[$i],
-                        'duration' => $durations[$i],
-                        'quantity' => $quantities[$i],
-                        'special_instructions' => $specialInstructions[$i] ?? null,
-                        'route' => $_POST['route'] ?? 'oral'
-                    ];
+try {
+    switch ($action) {
+        case 'create':
+            // Validate required fields
+            $requiredFields = ['medication_id', 'dosage', 'frequency', 'duration'];
+            foreach ($requiredFields as $field) {
+                if (empty($_POST[$field])) {
+                    throw new Exception("All prescription details are required"); 
                 }
+            }
 
-                foreach ($prescriptionData as $data) {
-                    $prescription->createPrescription($data);
-                }
-                
-                $_SESSION['success'] = "Prescription created successfully";
-                header("Location: ../views/consultations/view.php?id=" . $consultationId);
-                break;
+            $prescriptionData = [
+                'medication_id' => $_POST['medication_id'],
+                'dosage' => $_POST['dosage'],
+                'frequency' => $_POST['frequency'],
+                'duration' => $_POST['duration'],
+                'instructions' => $_POST['instructions'] ?? ''
+            ];
 
-            case 'edit':
-                $prescriptionId = $_POST['prescription_id'];
-                $medications = $_POST['medications'] ?? [];
-                $dosages = $_POST['dosages'] ?? [];
-                $frequencies = $_POST['frequencies'] ?? [];
-                $durations = $_POST['durations'] ?? [];
-                $notes = $_POST['notes'] ?? [];
-                
-                $prescriptionData = [];
-                for ($i = 0; $i < count($medications); $i++) {
-                    $prescriptionData[] = [
-                        'medication_id' => $medications[$i],
-                        'dosage' => $dosages[$i],
-                        'frequency' => $frequencies[$i],
-                        'duration' => $durations[$i],
-                        'notes' => $notes[$i] ?? null
-                    ];
-                }
+            $prescription->createPrescription($medicalRecordId, $prescriptionData);
+            $_SESSION['success'] = "Prescription added successfully";
+            break;
+        
+        case 'update':
+            if (!$prescriptionId) {
+                throw new Exception("Prescription ID is required");
+            }    
 
-                $prescription->updatePrescription($prescriptionId, $prescriptionData);
-                $_SESSION['success'] = "Prescription updated successfully";
-                header("Location: prescriptions_list.php");
-                break;
+            $prescriptionData = [
+                'medication_id' => $_POST['medication_id'],
+                'dosage' => $_POST['dosage'],
+                'frequency' => $_POST['frequency'],
+                'duration' => $_POST['duration'],
+                'instructions' => $_POST['instructions'] ?? '',
+                'status' => $_POST['status'] ?? 'active'
+            ];
 
-            default:
-                throw new Exception("Invalid action");    
-        }
-    } catch (Exception $e) {
-        $_SESSION['error'] = $e->getMessage();
-        header("Location: prescriptions_list.php");
-    } 
-    exit();
+            $prescription->updatePrescription($prescriptionId, $prescriptionData);
+            $_SESSION['success'] = "Prescription updated successfully";
+            break;
+
+        case 'delete':
+            if (!$prescriptionId) {
+                throw new Exception("Prescription ID is required");
+            }    
+
+            $prescription->deletePrescription($prescriptionId);
+            $_SESSION['success'] = "Prescription cancelled successfully";
+            break;
+
+        default:
+            throw new Exception("Invalid action");    
+    }
+
+    // Redirect back to the medical record view
+    header("Location: ../views/medical_records/view.php?id=" . $medicalRecordId);
+    exit;
+} catch (Exception $e) {
+    error_log("Error in prescription handler: " . $e->getMessage());
+    $_SESSION['error'] = "Error processing prescription: " . $e->getMessage();
+    header("Location: ../views/medical_records/view.php?id=" . $medicalRecordId);
+    exit;
 }

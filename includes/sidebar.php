@@ -252,7 +252,6 @@
                         <span class="nav-link-title">Prescriptions</span>
                     </a>
                     <div class="dropdown-menu">
-                        <a class="dropdown-item" href="<?php echo path('views', 'prescriptions'); ?>list.php">All Prescriptions</a>
                         <a class="dropdown-item" href="<?php echo path('views', 'prescriptions'); ?>create.php">Create Prescription</a>
                         <a class="dropdown-item" href="<?php echo path('views', 'prescriptions'); ?>pending.php">Pending Prescriptions</a>
                         <a class="dropdown-item" href="<?php echo path('views', 'prescriptions'); ?>history.php">Prescription History</a>

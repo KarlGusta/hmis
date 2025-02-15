@@ -109,7 +109,7 @@ try {
                                                 <a href="consultation.php?id=<?= $consultation['id'] ?>" 
                                                    class="btn btn-sm button-custom-white-sm">Continue</a>
                                                 <?php endif; ?>
-                                                <a href="../prescriptions/create.php?consultation_id=<?= $consultation['id'] ?>" 
+                                                <a href="../prescriptions/list.php?medical_record_id=<?= $consultation['medical_record_id'] ?>" 
                                                    class="btn btn-sm button-custom-white-sm">Prescriptions</a>
                                             </td>
                                         </tr>

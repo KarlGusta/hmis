@@ -4,6 +4,7 @@ require_once '../classes/Consultation.php';
 require_once '../classes/PatientQueue.php';
 require_once '../config/database.php';
 require_once '../classes/ActivityLogger.php';
+require_once '../classes/MedicalRecord.php';
 
 $db = new DatabaseConnection();
 $consultation = new Consultation($db);
@@ -20,8 +21,30 @@ try {
         throw new Exception("Missing required parameters");
     }
 
-    // Start the consultation
-    $consultationId = $consultation->startConsultation($queueId, $roomId);
+    // Get queue details for symptoms/chief complaint
+    $queueDetails = $queue->getQueueById($queueId);
+    
+    // Create initial medical record
+    $medicalRecord = new MedicalRecord($db);
+    $medicalRecordData = [
+        'chief_complaint' => $queueDetails['symptoms'],
+        'history_of_illness' => '',
+        'diagnosis' => '',
+        'treatment_plan' => '',
+        'prescription' => '',
+        'lab_requests' => '',
+        'follow_up_date' => null,
+        'consultation_notes' => '',
+        'status' => 'in_progress'
+    ];
+    
+    $medicalRecordId = $medicalRecord->createRecord($patientId, $_SESSION['user_id'], null, $medicalRecordData);
+    
+    // Start the consultation with medical record ID
+    $consultationId = $consultation->startConsultation($queueId, $roomId, $medicalRecordId);
+
+    // Update the medical record with the consultation ID
+    // $medicalRecord->updateConsultationId($medicalRecordId, $consultationId);
 
     if (!$consultationId) {
         throw new Exception("Failed to start consultation");
