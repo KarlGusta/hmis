@@ -205,4 +205,25 @@ class PatientQueue {
             return null;
         }
     }
+
+    public function getQueueById($queueId) {
+        try {
+            $query = "SELECT q.*,
+                             CONCAT(p.first_name, ' ', p.last_name) as patient_name,
+                             d.name as department_name,
+                             CONCAT(doc.first_name, ' ', doc.last_name) as doctor_name,
+                             TIMESTAMPDIFF(MINUTE, q.check_in_time, NOW()) as wait_time
+                      FROM {$this->table} q
+                      JOIN patients p ON q.patient_id = p.id
+                      JOIN departments d ON q.department_id = d.id
+                      LEFT JOIN users u ON q.called_by = u.id
+                      LEFT JOIN doctors doc ON u.id = doc.user_id
+                      WHERE q.id = ?";
+
+            return $this->db->fetchOne($query, [$queueId]);
+        } catch (Exception $e) {
+            error_log("Failed to fetch queue details: " . $e->getMessage());
+            throw new Exception("Failed to fetch queue details: " . $e->getMessage());
+        }
+    }
 }

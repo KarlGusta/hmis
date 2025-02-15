@@ -55,11 +55,19 @@ class MedicalRecord
                 $data['lab_requests'],
                 $data['follow_up_date'],
                 $data['consultation_notes'],
-                'completed',
+                $data['status'],
                 $_SESSION['user_id']
             ];
 
-            return $this->db->executeQuery($query, $params);
+            // executeQuery() returns insert_id for INSERT queries
+            $newId = $this->db->executeQuery($query, $params);
+            
+            if (!$newId) {
+                throw new Exception("Failed to create medical record");
+            }
+
+            return $newId;
+
         } catch (Exception $e) {
             error_log("Error creating medical record: " . $e->getMessage());
             error_log("SQL Error: " . $this->db->getErrorInfo());
@@ -71,32 +79,43 @@ class MedicalRecord
     {
         try {
             $query = "UPDATE {$this->table} 
-                     SET history_of_illness = :history_of_illness,
-                         diagnosis = :diagnosis,
-                         treatment_plan = :treatment_plan,
-                         prescription = :prescription,
-                         lab_requests = :lab_requests,
-                         follow_up_date = :follow_up_date,
-                         consultation_notes = :consultation_notes,
-                         updated_by = :updated_by
-                     WHERE id = :id";
+                     SET chief_complaint = ?,
+                         history_of_illness = ?,
+                         diagnosis = ?,
+                         treatment_plan = ?,
+                         prescription = ?,
+                         lab_requests = ?,
+                         follow_up_date = ?,
+                         consultation_notes = ?,
+                         status = ?,
+                         updated_by = ?,
+                         updated_at = NOW()
+                     WHERE id = ?";
 
             $params = [
-                ':id' => $recordId,
-                ':history_of_illness' => $data['history_of_illness'],
-                ':diagnosis' => $data['diagnosis'],
-                ':treatment_plan' => $data['treatment_plan'],
-                ':prescription' => $data['prescription'],
-                ':lab_requests' => $data['lab_requests'],
-                ':follow_up_date' => $data['follow_up_date'],
-                ':consultation_notes' => $data['consultation_notes'],
-                ':updated_by' => $_SESSION['user_id']
+                $data['chief_complaint'] ?? null,
+                $data['history_of_illness'] ?? null,
+                $data['diagnosis'] ?? null,
+                $data['treatment_plan'] ?? null,
+                $data['prescription'] ?? null,
+                $data['lab_requests'] ?? null,
+                $data['follow_up_date'] ?? null,
+                $data['consultation_notes'] ?? null,
+                $data['status'] ?? 'in_progress',
+                $_SESSION['user_id'],
+                $recordId
             ];
 
-            return $this->db->executeQuery($query, $params);
+            $result = $this->db->executeQuery($query, $params);
+            if ($result === false) {
+                error_log("SQL Error: " . $this->db->getErrorInfo());
+                throw new Exception("Database update failed");
+            }
+            return $result;
         } catch (Exception $e) {
             error_log("Error updating medical record: " . $e->getMessage());
-            throw new Exception("Failed to update medical record");
+            error_log("SQL Error: " . $this->db->getErrorInfo());
+            throw new Exception("Failed to update medical record: " . $e->getMessage());
         }
     }
 

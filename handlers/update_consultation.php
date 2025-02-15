@@ -42,41 +42,34 @@ try {
            throw new Exception("Diagnosis and Treatment Plan are required to complete the consultation"); 
         }
 
-        // Update and complete the consultation
-        $consultation->updateConsultation($consultationId, $consultationData);
-        
-        // Create medical record
-        require_once '../classes/MedicalRecord.php';
-        $medicalRecord = new MedicalRecord($db); // Pass database connection
-        
-        // Get consultation details to get patient_id and doctor_id
+        // Get consultation details to get the medical_record_id
         $consultationDetails = $consultation->getConsultation($consultationId);
         
-        // Validate consultation details
-        if (!isset($consultationDetails['patient_id']) || !isset($consultationDetails['doctor_id'])) {
-            throw new Exception("Missing required consultation details (patient_id or doctor_id)");
+        if (!$consultationDetails['medical_record_id']) {
+            throw new Exception("No medical record found for this consultation");
         }
+
+        // Update the existing medical record
+        require_once '../classes/MedicalRecord.php';
+        $medicalRecord = new MedicalRecord($db);
         
-        // Prepare data for medical record
-        $medicalRecordData = array_merge($consultationData, [
-            'chief_complaint' => $consultationDetails['chief_complaint'] ?? ''
-        ]);
-        
-        try {            
-            // Create the medical record
-            $medicalRecord->createRecord(
-                $consultationDetails['patient_id'],
-                $consultationDetails['doctor_id'],
-                $consultationId,
-                $medicalRecordData
-            );
+        try {
+            // Update the medical record with completed status and consultation ID
+            $medicalRecordData = array_merge($consultationData, [
+                'status' => 'completed',
+                'consultation_id' => $consultationId
+            ]);
+            
+            $medicalRecord->updateRecord($consultationDetails['medical_record_id'], $medicalRecordData);
         } catch (Exception $e) {
-            error_log("Failed to create medical record. Error details:");
+            error_log("Failed to update medical record. Error details:");
             error_log("Exception message: " . $e->getMessage());
             error_log("Exception trace: " . $e->getTraceAsString());
-            error_log("Medical Record Data: " . json_encode($medicalRecordData, JSON_PRETTY_PRINT));
-            throw new Exception("Failed to create medical record: " . $e->getMessage());
+            throw new Exception("Failed to update medical record: " . $e->getMessage());
         }
+
+        // Update the consultation
+        $consultation->updateConsultation($consultationId, $consultationData);
 
         // Complete the consultation
         $consultation->completeConsultation($consultationId, $consultationData);
