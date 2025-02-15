@@ -44,7 +44,7 @@ include '../../includes/navbar.php';
                                         $medications = $medication->getAllMedications();
                                         
                                         foreach ($medications as $med) {
-                                            $stockClass = $med['stock_quantity'] <= $med['reorder_level']
+                                            $stockClass = $med['current_stock'] <= $med['minimum_stock']
                                                 ? 'text-danger'
                                                 : 'text-success';
                                                 ?>
@@ -55,7 +55,7 @@ include '../../includes/navbar.php';
                                                     <td><?= htmlspecialchars($med['unit']) ?></td>
                                                     <td><?= number_format($med['unit_price'], 2) ?></td>
                                                     <td class="<?= $stockClass ?>">
-                                                        <?= $med['stock_quantity'] ?>
+                                                        <?= $med['current_stock'] ?>
                                                     </td>
                                                     <td>
                                                         <span class="badge <?= $med['status'] === 'active' ? 'button-custom-black-sm' : 'button-custom-sm' ?>">

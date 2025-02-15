@@ -73,11 +73,11 @@ include '../../includes/navbar.php';
                                     </div>
                                     <div class="col-md-3">
                                         <label class="form-label required">Initial Stock</label>
-                                        <input type="number" class="form-control" name="stock_quantity" required>
+                                        <input type="number" class="form-control" name="current_stock" required>
                                     </div>
                                     <div class="col-md-3">
                                         <label class="form-label required">Reorder Level</label>
-                                        <input type="number" class="form-control" name="reorder_level" required>
+                                        <input type="number" class="form-control" name="minimum_stock" required>
                                     </div>
                                 </div>
 

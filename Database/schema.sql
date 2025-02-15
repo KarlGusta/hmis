@@ -288,8 +288,8 @@ CREATE TABLE medications (
     category VARCHAR(50),
     unit VARCHAR(20),
     unit_price DECIMAL(10,2) NOT NULL,
-    stock_quantity INT NOT NULL,
-    reorder_level INT,
+    current_stock INT DEFAULT 0,
+    minimum_stock INT DEFAULT 10,
     status ENUM('active', 'inactive') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -313,6 +313,18 @@ CREATE TABLE prescriptions (
     FOREIGN KEY (medication_id) REFERENCES medications(id),
     FOREIGN KEY (created_by) REFERENCES users(id),
     FOREIGN KEY (updated_by) REFERENCES users(id)  
+);
+
+-- Medication Dispensing table
+CREATE TABLE medication_dispensing (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    prescription_id INT NOT NULL,
+    quantity INT NOT NULL,
+    notes TEXT,
+    dispensed_by VARCHAR(36) NOT NULL,
+    dispensed_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (prescription_id) REFERENCES prescriptions(id),
+    FOREIGN KEY (dispensed_by) REFERENCES users(id) 
 );
 
 -- Bills table
