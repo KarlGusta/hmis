@@ -6,6 +6,7 @@ require_once '../../classes/Pharmacy.php';
 $db = new DatabaseConnection();
 $pharmacy = new Pharmacy($db);
 
+$pendingPrescriptions = []; // Initialize as empty array
 try {
     $pendingPrescriptions = $pharmacy->getPendingPrescriptions();
 } catch (Exception $e) {
@@ -14,6 +15,7 @@ try {
 
 include '../../includes/header.php';
 include '../../includes/sidebar.php';
+include '../../includes/navbar.php';
 ?>
 
 <div class="page-wrapper">
@@ -21,7 +23,7 @@ include '../../includes/sidebar.php';
         <div class="container-xl">
             <?php include '../../includes/alerts.php'; ?>
             
-            <div class="card">
+            <div class="card card-custom">
                 <div class="card-header">
                     <h3 class="card-title">Pending Prescriptions</h3>
                 </div>
@@ -39,21 +41,27 @@ include '../../includes/sidebar.php';
                                 </tr>
                             </thead>
                             <tbody>
-                                <?php foreach ($pendingPrescriptions as $prescription): ?>
+                                <?php if (empty($pendingPrescriptions)): ?>
                                     <tr>
-                                        <td><?= htmlspecialchars($prescription['first_name'] . ' ' . $prescription['last_name']) ?></td>
-                                        <td><?= htmlspecialchars($prescription['medication_name']) ?> <?= htmlspecialchars($prescription['strength']) ?></td>
-                                        <td><?= htmlspecialchars($prescription['dosage']) ?></td>
-                                        <td><?= htmlspecialchars($prescription['prescribed_by_name']) ?></td>
-                                        <td><?= date('M d, Y', strtotime($prescription['created_at'])) ?></td>
-                                        <td>
-                                            <button class="btn btn-primary btn-sm"
-                                                    onclick="showDispensingModal(<?= $prescription['id'] ?>)">
-                                                Dispense    
-                                            </button>
-                                        </td>
+                                        <td colspan="6" class="text-center">No pending prescriptions available.</td>
                                     </tr>
-                                <?php endforeach; ?>    
+                                <?php else: ?>
+                                    <?php foreach ($pendingPrescriptions as $prescription): ?>
+                                        <tr>
+                                            <td><?= htmlspecialchars($prescription['first_name'] . ' ' . $prescription['last_name']) ?></td>
+                                            <td><?= htmlspecialchars($prescription['medication_name']) ?> <?= htmlspecialchars($prescription['strength']) ?></td>
+                                            <td><?= htmlspecialchars($prescription['dosage']) ?></td>
+                                            <td><?= htmlspecialchars($prescription['prescribed_by_name']) ?></td>
+                                            <td><?= date('M d, Y', strtotime($prescription['created_at'])) ?></td>
+                                            <td>
+                                                <button class="btn btn-primary btn-sm"
+                                                        onclick="showDispensingModal(<?= $prescription['id'] ?>)">
+                                                    Dispense    
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php endif; ?>    
                             </tbody>
                         </table>
                     </div>
@@ -101,3 +109,4 @@ function showDispensingModal(prescriptionId) {
     modal.show();
 }    
 </script>
+<?php include '../../includes/footer_scripts.php'; ?>

@@ -429,6 +429,7 @@
                         <a class="dropdown-item" href="<?php echo path('views', 'medications'); ?>batches.php">Manage Batches</a>
                         <a class="dropdown-item" href="<?php echo path('views', 'pharmacy'); ?>inventory.php">Inventory</a>
                         <a class="dropdown-item" href="<?php echo path('views', 'pharmacy'); ?>prescriptions.php">Prescriptions</a>
+                        <a class="dropdown-item" href="<?php echo path('views', 'pharmacy'); ?>pending_prescriptions.php">Pending Prescriptions</a>
                         <a class="dropdown-item" href="<?php echo path('views', 'pharmacy'); ?>sales.php">Sales</a>
                         <a class="dropdown-item" href="<?php echo path('views', 'pharmacy'); ?>reports.php">Reports</a>
                     </div>

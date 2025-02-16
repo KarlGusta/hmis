@@ -23,6 +23,7 @@ $departments = $department->getAllDepartments();
 <div class="page-wrapper">
     <div class="page-body">
         <div class="container-xl">
+            <?php include '../../includes/alerts.php'; ?>
             <div class="row row-cards">
                 <div class="col-md-12">
                     <div class="card card-custom">
