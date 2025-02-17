@@ -304,6 +304,10 @@ CREATE TABLE prescriptions (
     frequency VARCHAR(100) NOT NULL, -- e.g., "3 times a day"
     duration VARCHAR(100) NOT NULL, -- e.g., "7 days"
     instructions TEXT,
+    dispensed_quantity INT,
+    dispensing_notes TEXT,
+    dispensed_by VARCHAR(36),
+    dispensed_at DATETIME,
     status ENUM('active', 'completed', 'cancelled') DEFAULT 'active',
     created_by VARCHAR(36) NOT NULL,
     updated_by VARCHAR(36),
@@ -313,6 +317,7 @@ CREATE TABLE prescriptions (
     FOREIGN KEY (medication_id) REFERENCES medications(id),
     FOREIGN KEY (created_by) REFERENCES users(id),
     FOREIGN KEY (updated_by) REFERENCES users(id)  
+    FOREIGN KEY (dispensed_by) REFERENCES users(id)
 );
 
 -- Medication Dispensing table

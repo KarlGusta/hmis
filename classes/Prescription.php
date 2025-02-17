@@ -116,4 +116,42 @@ class Prescription {
             throw new Exception("Failed to fetch medications");
         }
     }
+
+    public function dispensePrescription($prescriptionId, $dispensingData) {
+        try {
+            // Start transaction
+            $this->db->beginTransaction();
+
+            // Update prescription status
+            $query = "UPDATE {$this->table} SET
+                status = :status,
+                dispensed_quantity = :quantity,
+                dispensing_notes = :notes,
+                dispensed_by = :dispensed_by,
+                dispensed_at = NOW()
+                WHERE id = :id";
+
+            $params = [
+                ':id' => $prescriptionId,
+                ':status' => $dispensingData['status'],
+                ':quantity' => $dispensingData['quantity'],
+                ':notes' => $dispensingData['notes'],
+                ':dispensed_by' => $_SESSION['user_id']
+            ];
+
+            $this->db->executeQuery($query, $params);
+
+            // Could add additional logic here like:
+            // - Updating medication inventory
+            // - Creating dispensing record
+            // - Sending notifications
+
+            $this->db->commit();
+            return true;
+        } catch (Exception $e) {
+            $this->db->rollback();
+            error_log("Error dispensing prescription: " . $e->getMessage());
+            throw new Exception("Failed to dispense prescription");
+        }
+    }
 }
