@@ -52,6 +52,6 @@ try {
     exit;
 } catch (Exception $e) {
     $_SESSION['error'] = $e->getMessage();
-    header('Location: ../views/appointments/create.php');
+    header('Location: ../views/appointments/schedule.php');
     exit;
 }

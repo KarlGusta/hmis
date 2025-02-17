@@ -16,12 +16,12 @@ try {
         'category' => filter_input(INPUT_POST, 'category', FILTER_SANITIZE_STRING),
         'unit' => filter_input(INPUT_POST, 'unit', FILTER_SANITIZE_STRING),
         'unit_price' => filter_input(INPUT_POST, 'unit_price', FILTER_VALIDATE_FLOAT),
-        'stock_quantity' => filter_input(INPUT_POST, 'stock_quantity', FILTER_VALIDATE_INT),
-        'reorder_level' => filter_input(INPUT_POST, 'reorder_level', FILTER_VALIDATE_INT)
+        'current_stock' => filter_input(INPUT_POST, 'current_stock', FILTER_VALIDATE_INT),
+        'minimum_stock' => filter_input(INPUT_POST, 'minimum_stock', FILTER_VALIDATE_INT)
     ];
     
     // Validate required fields
-    if (empty($data['name']) || empty($data['unit_price']) || empty($data['stock_quantity'])) {
+    if (empty($data['name']) || empty($data['unit_price']) || empty($data['current_stock'])) {
         throw new Exception("Required fields are missing");
     }
 
@@ -32,7 +32,7 @@ try {
     $activityLogger->logActivity([
         'user_id' => $_SESSION['user_id'] ?? null,
         'activity_type' => 'MEDICATION_ADD',
-        'activity_description' => "Added new medication: {$data['name']} (Generic: {$data['generic_name']}) with initial stock of {$data['stock_quantity']} {$data['unit']}",
+        'activity_description' => "Added new medication: {$data['name']} (Generic: {$data['generic_name']}) with initial stock of {$data['current_stock']} {$data['unit']}",
         'ip_address' => $_SERVER['REMOTE_ADDR'],
         'user_agent' => $_SERVER['HTTP_USER_AGENT'],
         'entity_type' => 'medication',

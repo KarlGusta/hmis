@@ -12,7 +12,7 @@ class Medication {
             $stmt = $this->db->conn->prepare(
                 "INSERT INTO medications (
                     name, generic_name, category, unit,
-                    unit_price, stock_quantity, reorder_level
+                    unit_price, current_stock, minimum_stock
                 ) VALUES (?, ?, ?, ?, ?, ?, ?)"
             );
 
@@ -23,8 +23,8 @@ class Medication {
                 $data['category'],
                 $data['unit'],
                 $data['unit_price'],
-                $data['stock_quantity'],
-                $data['reorder_level']
+                $data['current_stock'],
+                $data['minimum_stock']
             );
 
             return $stmt->execute();
@@ -38,8 +38,8 @@ class Medication {
             $stmt = $this->db->conn->prepare(
                 "UPDATE medications SET
                     name = ?, generic_name = ?, category = ?,
-                    unit = ?, unit_price = ?, stock_quantity = ?,
-                    reorder_level = ?, status = ?
+                    unit = ?, unit_price = ?, current_stock = ?,
+                    minimum_stock = ?, status = ?
                  WHERE id = ?"
             );
             
@@ -50,8 +50,8 @@ class Medication {
                 $data['category'],
                 $data['unit'],
                 $data['unit_price'],
-                $data['stock_quantity'],
-                $data['reorder_level'],
+                $data['current_stock'],
+                $data['minimum_stock'],
                 $data['status'],
                 $id
             );
@@ -92,7 +92,7 @@ class Medication {
 
             // Get current stock
             $stmt = $this->db->conn->prepare(
-                "SELECT stock_quantity FROM medications WHERE id = ? FOR UPDATE"
+                "SELECT current_stock FROM medications WHERE id = ? FOR UPDATE"
             );
             $stmt->bind_param("i", $id);
             $stmt->execute();
@@ -100,8 +100,8 @@ class Medication {
 
             // Calculate new stock
             $newQuantity = $type === 'add'
-                ? $result['stock_quantity'] + $quantity
-                : $result['stock_quantity'] - $quantity;
+                ? $result['current_stock'] + $quantity
+                : $result['current_stock'] - $quantity;
 
             if ($newQuantity < 0) {
                 throw new Exception("Insufficient stock");
@@ -109,7 +109,7 @@ class Medication {
 
             // Update stock
             $stmt = $this->db->conn->prepare(
-                    "UPDATE medications SET stock_quantity = ? WHERE id = ?"
+                    "UPDATE medications SET current_stock = ? WHERE id = ?"
                 );
                 $stmt->bind_param("ii", $newQuantity, $id);
                 $stmt->execute();
@@ -125,7 +125,7 @@ class Medication {
         public function getLowStockMedications() {
             $stmt = $this->db->conn->prepare(
                 "SELECT * FROM medications
-                WHERE stock_quantity <= reorder_level
+                WHERE current_stock <= minimum_stock
                 AND status = 'active'"
             );
             $stmt->execute();
