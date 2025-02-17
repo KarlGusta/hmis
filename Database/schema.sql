@@ -332,34 +332,43 @@ CREATE TABLE medication_dispensing (
     FOREIGN KEY (dispensed_by) REFERENCES users(id) 
 );
 
--- Bills table
-CREATE TABLE bills (
+-- Create billing table to track dispensed medication costs
+CREATE TABLE billing (
     id INT PRIMARY KEY AUTO_INCREMENT,
+    prescription_id INT NOT NULL,
     patient_id INT NOT NULL,
-    appointment_id INT,
-    bill_date DATE NOT NULL,
-    status ENUM('pending', 'paid', 'cancelled') DEFAULT 'pending',
-    total_amount DECIMAL(10,2) NOT NULL,
-    paid_amount DECIMAL(10,2) DEFAULT 0,
-    payment_method VARCHAR(50),
-    payment_date DATETIME,
-    notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (patient_id) REFERENCES patients(id),
-    FOREIGN KEY (appointment_id) REFERENCES appointments(id)
-);
-
--- Bill Items table
-CREATE TABLE bill_items (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    bill_id INT NOT NULL,
-    item_type ENUM('consultation', 'laboratory', 'medication', 'procedure') NOT NULL,
-    item_id INT NOT NULL,
+    medication_id INT NOT NULL,
     quantity INT NOT NULL,
     unit_price DECIMAL(10,2) NOT NULL,
-    total_price DECIMAL(10,2) NOT NULL,
-    FOREIGN KEY (bill_id) REFERENCES bills(id) 
+    total_amount DECIMAL(10,2) NOT NULL,
+    status ENUM('pending', 'paid', 'cancelled') DEFAULT 'pending',
+    payment_method VARCHAR(50),
+    payment_reference VARCHAR(100),
+    payment_date DATETIME,
+    created_by VARCHAR(36) NOT NULL,
+    updated_by VARCHAR(36),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (prescription_id) REFERENCES prescriptions(id),
+    FOREIGN KEY (patient_id) REFERENCES patients(id),
+    FOREIGN KEY (medication_id) REFERENCES medications(id),
+    FOREIGN KEY (created_by) REFERENCES users(id),
+    FOREIGN KEY (updated_by) REFERENCES users(id)  
+);
+
+-- Create payment transactions table to track payment history
+CREATE TABLE payment_transactions (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    billing_id INT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    payment_method VARCHAR(50) NOT NULL,
+    payment_reference VARCHAR(100),
+    transaction_date DATETIME NOT NULL,
+    notes TEXT,
+    created_by VARCHAR(36) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (billing_id) REFERENCES billing(id),
+    FOREIGN KEY (created_by) REFERENCES users(id)   
 );
 
 -- Inventory Management
