@@ -1,11 +1,14 @@
 <?php
 require_once(__DIR__ . '/../config/database.php');
+require_once(__DIR__ . '/Billing.php');
 
 class Dispensing {
     private $db;
+    private $billing;
 
     public function __construct($db) {
         $this->db = $db;
+        $this->billing = new Billing($db);
     }
 
     public function dispenseMedication($prescriptionId, $data) {
@@ -44,8 +47,14 @@ class Dispensing {
             $prescriptionData = $this->getPrescriptionDetails($prescriptionId);
             $this->updateMedicationStock($prescriptionData['medication_id'], $data['quantity']);
 
+            // Create billing record
+            $billingData = $this->billing->createBillingRecord($prescriptionId, $data['quantity']);
+
             $this->db->commit();
-            return true;
+            return [
+                'success' => true,
+                'billing' => $billingData
+            ];
 
         } catch (Exception $e) {
             $this->db->rollback();
