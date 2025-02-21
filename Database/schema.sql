@@ -99,7 +99,7 @@ CREATE TABLE doctors (
     specialization VARCHAR(100) NOT NULL,
     qualification VARCHAR(100) NOT NULL,
     experience_years INT,
-    consultation_fee DECIMAL(10,2),
+    consultation_fee DECIMAL(10,2) DEFAULT 0.00,
     bio TEXT,
     photo VARCHAR(255),
     department_id VARCHAR(36),
@@ -316,7 +316,7 @@ CREATE TABLE prescriptions (
     FOREIGN KEY (medical_record_id) REFERENCES medical_records(id),
     FOREIGN KEY (medication_id) REFERENCES medications(id),
     FOREIGN KEY (created_by) REFERENCES users(id),
-    FOREIGN KEY (updated_by) REFERENCES users(id)  
+    FOREIGN KEY (updated_by) REFERENCES users(id),  
     FOREIGN KEY (dispensed_by) REFERENCES users(id)
 );
 
@@ -335,12 +335,14 @@ CREATE TABLE medication_dispensing (
 -- Create billing table to track dispensed medication costs
 CREATE TABLE billing (
     id INT PRIMARY KEY AUTO_INCREMENT,
-    prescription_id INT NOT NULL,
+    prescription_id INT NULL,
     patient_id INT NOT NULL,
-    medication_id INT NOT NULL,
+    medication_id INT NULL,
     quantity INT NOT NULL,
     unit_price DECIMAL(10,2) NOT NULL,
     total_amount DECIMAL(10,2) NOT NULL,
+    billing_type ENUM('consultation', 'prescription') DEFAULT 'prescription',
+    reference_id VARCHAR(36) NULL,
     status ENUM('pending', 'paid', 'cancelled') DEFAULT 'pending',
     payment_method VARCHAR(50),
     payment_reference VARCHAR(100),
@@ -421,45 +423,6 @@ CREATE TABLE procedures (
     status ENUM('active', 'inactive') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
--- Modify bills table
-ALTER TABLE bills
-ADD insurance_clam_id INT NULL,
-ADD insurance_id INT NULL,
-ADD payment_reference VARCHAR(50),
-ADD due_date DATE,
-MODIFY status ENUM('pending', 'partially_paid', 'paid', 'cancelled', 'insurance_pending', 'insurance_rejected') DEFAULT 'pending'; 
-
--- Bill payments table
-CREATE TABLE payments (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    bill_id INT NOT NULL,
-    amount DECIMAL(10,2) NOT NULL,
-    payment_method ENUM('cash', 'card', 'mpesa', 'insurance', 'bank_transfer') NOT NULL,
-    payment_reference VARCHAR(50),
-    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status ENUM('pending', 'completed', 'failed', 'refunded') DEFAULT 'completed',
-    notes TEXT,
-    created_by VARCHAR(36) NOT NULL,
-    FOREIGN KEY (bill_id) REFERENCES bills(id),
-    FOREIGN KEY (created_by) REFERENCES users(id)
-);
-
--- Insurance claims table
-CREATE TABLE insurance_claims (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    bill_id INT NOT NULL,
-    insurance_id INT NOT NULL,
-    claim_number VARCHAR(50),
-    claim_amount DECIMAL(10,2) NOT NULL,
-    approved_amount DECIMAL(10,2),
-    status ENUM('submitted', 'pending', 'approved', 'rejected', 'paid') DEFAULT 'submitted',
-    submitted_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    response_date TIMESTAMP NULL DEFAULT NULL,
-    notes TEXT,
-    FOREIGN KEY (bill_id) REFERENCES bills(id),
-    FOREIGN KEY (insurance_id) REFERENCES insurance_providers(id)
 );
 
 -- Medication categories table
@@ -743,13 +706,6 @@ CREATE TABLE IF NOT EXISTS room_history (
     FOREIGN KEY (created_by) REFERENCES users(id)
 );
 
--- Indexes for performance
-CREATE INDEX idx_bills_insurance ON bills(insurance_id);
-CREATE INDEX idx_bills_status ON bills(status);
-CREATE INDEX idx_payments_bill ON payments(bill_id);
-CREATE INDEX idx_insurance_claims_bill ON insurance_claims(bill_id);
-CREATE INDEX idx_insurance_claims_status ON insurance_claims(status);
-
 -- Index for improving query performance
 CREATE INDEX idx_patient_queue_status ON patient_queue(status);
 CREATE INDEX idx_patient_queue_priority ON patient_queue(priority);
@@ -760,7 +716,6 @@ CREATE INDEX idx_queue_history_queue ON queue_history(queue_id);
 -- Create indexes for performance
 CREATE INDEX idx_patient_search ON patients(first_name, last_name, email, phone);
 CREATE INDEX idx_appointment_date ON appointments(appointment_datetime);
-CREATE INDEX idx_bills_date ON bills(bill_date);
 CREATE INDEX idx_medical_records_status ON medical_records(status);
 
 -- Add indexes for performance

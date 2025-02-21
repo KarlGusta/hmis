@@ -3,10 +3,6 @@ $pageTitle = "Record Payment";
 require_once '../../config/database.php';
 require_once '../../classes/Billing.php';
 
-include '../../includes/header.php';
-include '../../includes/sidebar.php';
-include '../../includes/navbar.php';
-
 if (!isset($_GET['id']) || empty($_GET['id'])) {
     $_SESSION['error'] = "Invalid billing ID";
     header('Location: pending_bills.php');
@@ -23,6 +19,11 @@ if (!$billDetails || $billDetails['status'] !== 'pending') {
     header('Location: pending_bills.php');
     exit;
 }
+
+// Only include the headers after the redirects
+include '../../includes/header.php';
+include '../../includes/sidebar.php';
+include '../../includes/navbar.php';
 ?>
 
 <div class="page-wrapper">

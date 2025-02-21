@@ -734,6 +734,18 @@ function showAlert(type, message) {
 }
 </script>
 
+<!-- For the pharmacy pending prescriptions view -->
+<script>
+function showDispensingModal(prescription) {
+    const modal = document.getElementById('dispensingModal');
+    modal.querySelector('#prescription_id').value = prescription.id;
+    
+    // Show the modal
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+}
+</script> 
+
 </body>
 
 </html>

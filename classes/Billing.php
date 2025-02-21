@@ -36,8 +36,10 @@ class Billing {
                 quantity,
                 unit_price,
                 total_amount,
+                billing_type,
+                reference_id,
                 created_by
-            ) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            ) VALUES (?, ?, ?, ?, ?, ?, 'prescription', NULL, ?)";
 
             $params = [
                 $prescriptionId,
@@ -57,7 +59,8 @@ class Billing {
                 'medication_name' => $prescriptionData['medication_name'],
                 'quantity' => $quantityDispensed,
                 'unit_price' => $prescriptionData['unit_price'],
-                'total_amount' => $totalAmount
+                'total_amount' => $totalAmount,
+                'type' => 'prescription'
             ];
 
         } catch (Exception $e) {
@@ -65,53 +68,125 @@ class Billing {
         }
     }
 
-    public function getPendingBills() {
-        $query = "SELECT b.*, p.patient_id, pat.first_name, pat.last_name, pat.patient_id as patient_number,
-                  m.name as medication_name, m.form, m.strength
-                  FROM billing b
-                  JOIN patients pat ON b.patient_id = pat.id
-                  JOIN medications m ON b.medication_id = m.id
-                  JOIN prescriptions p ON b.prescription_id = p.id
-                  WHERE b.status = 'pending'
-                  ORDER BY b.created_at DESC";
+    public function createConsultationBill($consultationId) {
+        try {
+            // Get consultation and doctor details
+            $query = "SELECT c.*, d.consultation_fee, p.id as patient_id,
+                      CONCAT(p.first_name, ' ', p.last_name) as patient_name
+                      FROM consultations c
+                      JOIN doctors d ON c.doctor_id = d.user_id
+                      JOIN patients p ON c.patient_id = p.id
+                      WHERE c.id = ?";
 
-        return $this->db->fetchAll($query);          
+            $consultationData = $this->db->fetchOne($query, [$consultationId]);
+            
+            if (!$consultationData) {
+                throw new Exception("Consultation not found");
+            }
+
+            // Create billing record for consultation
+            $query = "INSERT INTO billing (
+                prescription_id,
+                patient_id,
+                medication_id,
+                quantity,
+                unit_price,
+                total_amount,
+                billing_type,
+                reference_id,
+                created_by
+            ) VALUES (
+                NULL,
+                ?,
+                NULL,
+                1,
+                ?,
+                ?,
+                'consultation',
+                ?,
+                ?
+            )";
+
+            $params = [
+                $consultationData['patient_id'],
+                $consultationData['consultation_fee'], // unit_price
+                $consultationData['consultation_fee'], // total_amount (same as unit_price since quantity is 1)
+                $consultationId,
+                $_SESSION['user_id']
+            ];
+
+            $billingId = $this->db->executeQuery($query, $params, true);
+
+            return [
+                'id' => $billingId,
+                'patient_name' => $consultationData['patient_name'],
+                'type' => 'consultation',
+                'amount' => $consultationData['consultation_fee']
+            ];
+        } catch (Exception $e) {
+            throw new Exception("Failed to create consultation billing: " . $e->getMessage());
+        }
     }
 
-    public function getPaidBills($startDate = null, $endDate = null, $patientId = null) {
-        $query = "SELECT b.*, p.patient_id, pat.first_name, pat.last_name, pat.patient_id as patient_number,
-                 m.name as medication_name, m.form, m.strength
+    public function getPendingBills() {
+        $query = "SELECT b.*,
+                 p.first_name, p.last_name, p.patient_id as patient_number,
+                 CASE
+                   WHEN b.billing_type = 'consultation' THEN 'Consultation Fee'
+                   ELSE m.name
+                 END as medication_name,
+                 m.form, m.strength
                  FROM billing b
-                 JOIN patients pat ON b.patient_id = pat.id
-                 JOIN medications m ON b.medication_id = m.id
-                 JOIN prescriptions p ON b.prescription_id = p.id
-                 WHERE b.status = 'paid'";
+                 JOIN patients p ON b.patient_id = p.id
+                 LEFT JOIN medications m ON b.medication_id = m.id
+                 WHERE b.status = 'pending'
+                 ORDER BY b.created_at DESC";
+                 
+        return $this->db->fetchAll($query);
+    }
 
-        $params = [];
-        
-        if ($startDate && $endDate) {
-            $query .= " AND b.payment_date BETWEEN ? AND ?";
-            $params[] = $startDate . " 00:00:00";
-            $params[] = $endDate . " 23:59:59";
-        }
+    public function getPaidBills($startDate, $endDate, $patientId = null) {
+        $query = "SELECT b.*, 
+                 p.first_name, p.last_name, p.patient_id as patient_number,
+                 CASE 
+                    WHEN b.billing_type = 'consultation' THEN 'Consultation Fee'
+                    ELSE COALESCE(m.name, 'Unknown Medication')
+                 END as medication_name,
+                 COALESCE(m.form, '') as form, 
+                 COALESCE(m.strength, '') as strength,
+                 pt.payment_method,
+                 pt.payment_reference,
+                 pt.transaction_date as payment_date
+                 FROM billing b
+                 JOIN patients p ON b.patient_id = p.id
+                 LEFT JOIN medications m ON b.medication_id = m.id
+                 JOIN payment_transactions pt ON b.id = pt.billing_id
+                 WHERE b.status = 'paid'
+                 AND DATE(pt.transaction_date) BETWEEN ? AND ? ";
+
+        $params = [$startDate, $endDate];     
 
         if ($patientId) {
-            $query .= " AND b.patient_id = ?";
+            $query .= " AND p.patient_id = ?";
             $params[] = $patientId;
         }
 
-        $query .= " ORDER BY b.payment_date DESC";
+        $query .= " ORDER BY pt.transaction_date DESC";
 
         return $this->db->fetchAll($query, $params);
     }
 
     public function getBillingDetails($billingId) {
-        $query = "SELECT b.*, p.patient_id, pat.first_name, pat.last_name, pat.patient_id as patient_number,
-                 m.name as medication_name, m.form, m.strength
+        $query = "SELECT b.*, pat.first_name, pat.last_name, pat.patient_id as patient_number,
+                 CASE
+                    WHEN b.billing_type = 'prescription' THEN m.name
+                    ELSE 'Consultation Fee'
+                 END as medication_name,
+                 m.form, m.strength
                  FROM billing b
                  JOIN patients pat ON b.patient_id = pat.id
-                 JOIN medications m ON b.medication_id = m.id
-                 JOIN prescriptions p ON b.prescription_id = p.id
+                 LEFT JOIN medications m ON b.medication_id = m.id
+                 LEFT JOIN prescriptions p ON b.prescription_id = p.id
                  WHERE b.id = ?";
 
         return $this->db->fetchOne($query, [$billingId]);         

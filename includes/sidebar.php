@@ -295,23 +295,21 @@
                                 viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
                                 stroke-linecap="round" stroke-linejoin="round">
                                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                <path
-                                    d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" />
+                                <path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" />
                                 <path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" />
                             </svg>
                         </span>
                         <span class="nav-link-title">Billing</span>
                     </a>
                     <div class="dropdown-menu">
-                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>list.php">View Bills</a>
-                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>create.php">Create
-                            Bill</a>
-                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>invoices.php">Invoices</a>
-                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>payments.php">Payments</a>
-                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>insurance.php">Insurance
-                            Claims</a>
-                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>reports.php">Billing
-                            Reports</a>
+                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>paid_bills.php">Paid Bills</a>
+                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>pending_bills.php">Pending Bills</a>                      
+                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>reports.php">Billing Reports</a>
+                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>insurance.php">Insurance Claims</a>
+                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>pricing.php">Service Pricing</a>
+                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>packages.php">Billing Packages</a>
+                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>discounts.php">Discounts</a>
+                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>refunds.php">Refunds</a>
                     </div>
                 </li>
 

@@ -53,6 +53,7 @@ class Dispensing {
             $this->db->commit();
             return [
                 'success' => true,
+                'message' => 'Medication dispensed successfully',
                 'billing' => $billingData
             ];
 

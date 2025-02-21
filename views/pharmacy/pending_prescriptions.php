@@ -111,15 +111,4 @@ $pendingPrescriptions = $dispensing->getPendingPrescriptions();
     </div>
 </div>
 
-<script>
-function showDispensingModal(prescription) {
-    const modal = document.getElementById('dispensingModal');
-    modal.querySelector('#prescription_id').value = prescription.id;
-    
-    // Show the modal
-    const bsModal = new bootstrap.Modal(modal);
-    bsModal.show();
-}
-</script>
-
 <?php include '../../includes/footer_scripts.php'; ?> 
