@@ -246,11 +246,12 @@ class Billing {
     }
 
     public function getPaymentHistory($billingId) {
-        $query = "SELECT pt.*, u.first_name as staff_first_name, u.last_name as staff_last_name
-                 FROM payment_transactions pt
-                 JOIN users u ON pt.created_by = u.id
-                 WHERE pt.billing_id = ?
-                 ORDER BY pt.transaction_date DESC";
+        $query = "SELECT pt.*, 
+                  CONCAT(u.first_name, ' ', u.last_name) as staff_name
+                  FROM payment_transactions pt
+                  LEFT JOIN users u ON pt.created_by = u.id
+                  WHERE pt.billing_id = ?
+                  ORDER BY pt.transaction_date DESC";
 
         return $this->db->fetchAll($query, [$billingId]);         
     }

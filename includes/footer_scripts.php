@@ -746,6 +746,39 @@ function showDispensingModal(prescription) {
 }
 </script> 
 
+<!-- For register user view -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const doctorCheckbox = document.getElementById('role_doctor');
+    const doctorFields = document.getElementById('doctor-fields');
+    
+    // Function to toggle required attribute on doctor fields
+    function toggleDoctorFieldsRequired(required) {
+        const doctorInputs = doctorFields.querySelectorAll('input');
+        doctorInputs.forEach(input => {
+            input.required = required;
+        });
+    }
+
+    // Initial check
+    if (doctorCheckbox.checked) {
+        doctorFields.style.display = 'block';
+        toggleDoctorFieldsRequired(true);
+    }
+
+    // Add change event listener
+    doctorCheckbox.addEventListener('change', function() {
+        if (this.checked) {
+            doctorFields.style.display = 'block';
+            toggleDoctorFieldsRequired(true);
+        } else {
+            doctorFields.style.display = 'none';
+            toggleDoctorFieldsRequired(false);
+        }
+    });
+});
+</script>
+
 </body>
 
 </html>

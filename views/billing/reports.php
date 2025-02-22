@@ -38,7 +38,7 @@ $reportData = $billing->getBillingReport($startDate, $endDate);
                                     <input type="date" class="form-control" name="end_date" value="<?= htmlspecialchars($endDate) ?>">
                                 </div>
                                 <div class="col-md-4">
-                                    <button type="submit" class="btn btn-primary w-100">
+                                    <button type="submit" class="btn button-custom w-100">
                                         Generate Report
                                     </button>
                                 </div>
@@ -129,8 +129,8 @@ $reportData = $billing->getBillingReport($startDate, $endDate);
                         <div class="card-header">
                             <h3 class="card-title">Billing Summary</h3>
                             <div class="card-actions">
-                                <a href="paid_bills.php?start_date=<?= htmlspecialchars($startDate) ?>$end_date=<?= htmlspecialchars($endDate) ?>"
-                                   class="btn btn-primary">
+                                <a href="paid_bills.php?start_date=<?= htmlspecialchars($startDate) ?>&end_date=<?= htmlspecialchars($endDate) ?>"
+                                   class="btn button-custom">
                                     View Detailed Report
                                 </a>
                             </div>

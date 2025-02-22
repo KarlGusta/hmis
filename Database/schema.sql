@@ -20,13 +20,33 @@ CREATE TABLE users (
     username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(20) NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
     status ENUM('active', 'inactive') DEFAULT 'active',
     last_login DATETIME,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     department_id VARCHAR(36) NULL,
     FOREIGN KEY (department_id) REFERENCES departments(id)
+);
+
+-- Create roles table
+CREATE TABLE roles (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Create user_roles table for many-to-many relationship
+CREATE TABLE user_roles (
+    user_id VARCHAR(36) NOT NULL,
+    role_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, role_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
 );
 
 CREATE TABLE permissions (
@@ -786,9 +806,25 @@ INSERT INTO suppliers (name, contact_person, phone, email, address) VALUES
 ('MediSource Ltd', 'Jane Smith', '+254722222222', 'jane@medisource.com', 'Mombasa, Kenya'),
 ('HealthPlus Distributors', 'Mark Johnson', '+254722333333', 'mark@healthplus.com', 'Kisumu, Kenya');
 
--- Insert into users table
-INSERT INTO users (id, username, email, password_hash, role) VALUES
-(UUID(), 'Karl', 'karlgustaesimit@gmail.com', '$2a$12$vNII2SyMqyEtcAUcQxCc6.nysW4s2LCaGpMsM3d6UvCBDIM/3EbRq', 'admin');
+-- Create default admin user with password 'admin123'
+INSERT INTO users (id, username, email, password_hash, first_name, last_name, status)
+VALUES (
+    UUID(), 
+    'Karl',
+    'karlgustaesimit@gmail.com',
+    '$2a$12$vNII2SyMqyEtcAUcQxCc6.nysW4s2LCaGpMsM3d6UvCBDIM/3EbRq', -- hashed password
+    'System',
+    'Administrator',
+    'active'
+);
+
+-- Assign admin role to the admin user
+INSERT INTO user_roles (user_id, role_id)
+SELECT u.id, r.id
+FROM users u
+CROSS JOIN roles r
+WHERE u.username = 'Karl'
+AND r.name = 'admin';
 
 -- Insert departments into the departments table
 INSERT INTO departments (id, code, name, description, status) VALUES
@@ -821,6 +857,16 @@ INSERT INTO departments (id, code, name, description, status) VALUES
 (UUID(), 'LAB', 'Laboratory Services', 'Conducts diagnostic tests and analyses.', 'active'),
 (UUID(), 'PHARM', 'Pharmacy', 'Dispenses medications and provides pharmaceutical care.', 'active'),
 (UUID(), 'GENMED', 'General Medicine', 'Provides primary and non-specialized care for general medical conditions.', 'active');
+
+-- Insert default roles
+INSERT INTO roles (name, description) VALUES
+('admin', 'System administrator with full access'),
+('doctor', 'Medical doctor'),
+('nurse', 'Nursing staff'),
+('receptionist', 'Front desk staff'),
+('pharmacist', 'Pharmacy staff'),
+('lab_technician', 'Laboratory staff'),
+('cashier', 'Handles payments and billing');
 
 -- Sample trigger to update doctor status when leave is approved
 DELIMITER //

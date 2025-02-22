@@ -63,6 +63,10 @@ class DatabaseConnection {
     public function fetchAll($query, $params = []) {
         $stmt = $this->conn->prepare($query);
         
+        if ($stmt === false) {
+            throw new Exception("Query preparation failed: " . $this->conn->error);
+        }
+        
         if ($params) {
             $types = '';
             $values = [];
@@ -81,7 +85,10 @@ class DatabaseConnection {
             $stmt->bind_param($types, ...$values);
         }
         
-        $stmt->execute();
+        if (!$stmt->execute()) {
+            throw new Exception("Query execution failed: " . $stmt->error);
+        }
+        
         $result = $stmt->get_result();
         return $result->fetch_all(MYSQLI_ASSOC);
     }
