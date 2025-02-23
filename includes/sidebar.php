@@ -67,12 +67,11 @@
                         <a class="dropdown-item" href="<?php echo path('views', 'patients'); ?>list.php">Patient
                             List</a>
                         <a class="dropdown-item"
-                            href="<?php echo path('views', 'patients'); ?>appointments.php">Appointments</a>
+                            href="<?php echo path('views', 'appointments'); ?>list.php">Appointments</a>
                         <a class="dropdown-item" href="<?php echo path('views', 'patients'); ?>walk-in.php">Walk-in
                             Patients</a>
-                        <a class="dropdown-item" href="<?php echo path('views', 'patients'); ?>check-in.php">Patient
+                        <a class="dropdown-item" href="<?php echo path('views', 'triage'); ?>record_vital_signs.php">Patient
                             Check-in</a>
-                        <a class="dropdown-item" href="<?php echo path('views', 'queue'); ?>add.php">Add to Queue</a>
                     </div>
                 </li>
 
@@ -158,7 +157,7 @@
                         <a class="dropdown-item" href="<?php echo path('views', 'triage'); ?>queue.php">Triage Queue</a>
                         <a class="dropdown-item" href="<?php echo path('views', 'triage'); ?>assessment.php">Patient
                             Assessment</a>
-                        <a class="dropdown-item" href="<?php echo path('views', 'triage'); ?>vital_signs.php">Record
+                        <a class="dropdown-item" href="<?php echo path('views', 'triage'); ?>record_vital_signs.php">Record
                             Vital Signs</a>
                         <a class="dropdown-item" href="<?php echo path('views', 'triage'); ?>history.php">Triage
                             History</a>
@@ -186,14 +185,14 @@
                         <span class="nav-link-title">Outpatient</span>
                     </a>
                     <div class="dropdown-menu">
-                        <a class="dropdown-item" href="<?php echo path('views', 'outpatient'); ?>register.php">Register
+                        <a class="dropdown-item" href="<?php echo path('views', 'patients'); ?>register.php">Register
                             Outpatient</a>
                         <a class="dropdown-item"
-                            href="<?php echo path('views', 'outpatient'); ?>consultation.php">Consultation</a>
+                            href="<?php echo path('views', 'consultations'); ?>list.php">Consultation</a>
                         <a class="dropdown-item"
                             href="<?php echo path('views', 'outpatient'); ?>diagnosis.php">Diagnosis & Treatment</a>
                         <a class="dropdown-item"
-                            href="<?php echo path('views', 'outpatient'); ?>prescriptions.php">Prescriptions</a>
+                            href="<?php echo path('views', 'pharmacy'); ?>pending_prescriptions.php">Prescriptions</a>
                         <a class="dropdown-item"
                             href="<?php echo path('views', 'outpatient'); ?>procedures.php">Procedures</a>
                         <a class="dropdown-item"
@@ -253,7 +252,7 @@
                     </a>
                     <div class="dropdown-menu">
                         <a class="dropdown-item" href="<?php echo path('views', 'prescriptions'); ?>create.php">Create Prescription</a>
-                        <a class="dropdown-item" href="<?php echo path('views', 'prescriptions'); ?>pending.php">Pending Prescriptions</a>
+                        <a class="dropdown-item" href="<?php echo path('views', 'pharmacy'); ?>pending_prescriptions.php">Pending Prescriptions</a>
                         <a class="dropdown-item" href="<?php echo path('views', 'prescriptions'); ?>history.php">Prescription History</a>
                         <a class="dropdown-item" href="<?php echo path('views', 'prescriptions'); ?>reports.php">Prescription Reports</a>
                     </div>
@@ -295,23 +294,21 @@
                                 viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" fill="none"
                                 stroke-linecap="round" stroke-linejoin="round">
                                 <path stroke="none" d="M0 0h24v24H0z" fill="none" />
-                                <path
-                                    d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" />
+                                <path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" />
                                 <path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" />
                             </svg>
                         </span>
                         <span class="nav-link-title">Billing</span>
                     </a>
                     <div class="dropdown-menu">
-                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>list.php">View Bills</a>
-                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>create.php">Create
-                            Bill</a>
-                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>invoices.php">Invoices</a>
-                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>payments.php">Payments</a>
-                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>insurance.php">Insurance
-                            Claims</a>
-                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>reports.php">Billing
-                            Reports</a>
+                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>paid_bills.php">Paid Bills</a>
+                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>pending_bills.php">Pending Bills</a>                      
+                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>reports.php">Billing Reports</a>
+                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>insurance.php">Insurance Claims</a>
+                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>pricing.php">Service Pricing</a>
+                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>packages.php">Billing Packages</a>
+                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>discounts.php">Discounts</a>
+                        <a class="dropdown-item" href="<?php echo path('views', 'billing'); ?>refunds.php">Refunds</a>
                     </div>
                 </li>
 
@@ -332,8 +329,8 @@
                         <span class="nav-link-title">Staff Management</span>
                     </a>
                     <div class="dropdown-menu">
-                        <a class="dropdown-item" href="<?php echo path('views', 'auth'); ?>register.php">Register
-                            User</a>
+                        <a class="dropdown-item" href="<?php echo path('views', 'users'); ?>register.php">Register User</a>
+                        <a class="dropdown-item" href="<?php echo path('views', 'users'); ?>list.php">View Users</a>
                         <a class="dropdown-item" href="<?php echo path('views', 'staff'); ?>doctors.php">Doctors</a>
                         <a class="dropdown-item" href="<?php echo path('views', 'staff'); ?>nurses.php">Nurses</a>
                         <a class="dropdown-item" href="<?php echo path('views', 'staff'); ?>employees.php">Employees</a>

@@ -6,7 +6,7 @@
         </button>
 
         <?php if (isset($_SESSION['logged_in']) && $_SESSION['logged_in']): ?>
-            <h1 class="mb-0">Welcome, <?php echo htmlspecialchars(ucfirst(strtolower($_SESSION['username']))); ?> 👋</h1>
+            <h1 class="mb-0">Welcome, <?php echo htmlspecialchars(ucfirst(strtolower($_SESSION['first_name'])) . ' ' . htmlspecialchars(ucfirst(strtolower($_SESSION['last_name'])))); ?> 👋</h1>
         <?php endif; ?>
     </div>
 </header>

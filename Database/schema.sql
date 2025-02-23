@@ -20,13 +20,33 @@ CREATE TABLE users (
     username VARCHAR(50) UNIQUE NOT NULL,
     email VARCHAR(100) UNIQUE NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    role VARCHAR(20) NOT NULL,
+    first_name VARCHAR(100) NOT NULL,
+    last_name VARCHAR(100) NOT NULL,
     status ENUM('active', 'inactive') DEFAULT 'active',
     last_login DATETIME,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     department_id VARCHAR(36) NULL,
     FOREIGN KEY (department_id) REFERENCES departments(id)
+);
+
+-- Create roles table
+CREATE TABLE roles (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(50) UNIQUE NOT NULL,
+    description TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Create user_roles table for many-to-many relationship
+CREATE TABLE user_roles (
+    user_id VARCHAR(36) NOT NULL,
+    role_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id, role_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
 );
 
 CREATE TABLE permissions (
@@ -99,7 +119,7 @@ CREATE TABLE doctors (
     specialization VARCHAR(100) NOT NULL,
     qualification VARCHAR(100) NOT NULL,
     experience_years INT,
-    consultation_fee DECIMAL(10,2),
+    consultation_fee DECIMAL(10,2) DEFAULT 0.00,
     bio TEXT,
     photo VARCHAR(255),
     department_id VARCHAR(36),
@@ -316,7 +336,7 @@ CREATE TABLE prescriptions (
     FOREIGN KEY (medical_record_id) REFERENCES medical_records(id),
     FOREIGN KEY (medication_id) REFERENCES medications(id),
     FOREIGN KEY (created_by) REFERENCES users(id),
-    FOREIGN KEY (updated_by) REFERENCES users(id)  
+    FOREIGN KEY (updated_by) REFERENCES users(id),  
     FOREIGN KEY (dispensed_by) REFERENCES users(id)
 );
 
@@ -332,34 +352,45 @@ CREATE TABLE medication_dispensing (
     FOREIGN KEY (dispensed_by) REFERENCES users(id) 
 );
 
--- Bills table
-CREATE TABLE bills (
+-- Create billing table to track dispensed medication costs
+CREATE TABLE billing (
     id INT PRIMARY KEY AUTO_INCREMENT,
+    prescription_id INT NULL,
     patient_id INT NOT NULL,
-    appointment_id INT,
-    bill_date DATE NOT NULL,
-    status ENUM('pending', 'paid', 'cancelled') DEFAULT 'pending',
-    total_amount DECIMAL(10,2) NOT NULL,
-    paid_amount DECIMAL(10,2) DEFAULT 0,
-    payment_method VARCHAR(50),
-    payment_date DATETIME,
-    notes TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (patient_id) REFERENCES patients(id),
-    FOREIGN KEY (appointment_id) REFERENCES appointments(id)
-);
-
--- Bill Items table
-CREATE TABLE bill_items (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    bill_id INT NOT NULL,
-    item_type ENUM('consultation', 'laboratory', 'medication', 'procedure') NOT NULL,
-    item_id INT NOT NULL,
+    medication_id INT NULL,
     quantity INT NOT NULL,
     unit_price DECIMAL(10,2) NOT NULL,
-    total_price DECIMAL(10,2) NOT NULL,
-    FOREIGN KEY (bill_id) REFERENCES bills(id) 
+    total_amount DECIMAL(10,2) NOT NULL,
+    billing_type ENUM('consultation', 'prescription') DEFAULT 'prescription',
+    reference_id VARCHAR(36) NULL,
+    status ENUM('pending', 'paid', 'cancelled') DEFAULT 'pending',
+    payment_method VARCHAR(50),
+    payment_reference VARCHAR(100),
+    payment_date DATETIME,
+    created_by VARCHAR(36) NOT NULL,
+    updated_by VARCHAR(36),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (prescription_id) REFERENCES prescriptions(id),
+    FOREIGN KEY (patient_id) REFERENCES patients(id),
+    FOREIGN KEY (medication_id) REFERENCES medications(id),
+    FOREIGN KEY (created_by) REFERENCES users(id),
+    FOREIGN KEY (updated_by) REFERENCES users(id)  
+);
+
+-- Create payment transactions table to track payment history
+CREATE TABLE payment_transactions (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    billing_id INT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    payment_method VARCHAR(50) NOT NULL,
+    payment_reference VARCHAR(100),
+    transaction_date DATETIME NOT NULL,
+    notes TEXT,
+    created_by VARCHAR(36) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (billing_id) REFERENCES billing(id),
+    FOREIGN KEY (created_by) REFERENCES users(id)   
 );
 
 -- Inventory Management
@@ -412,45 +443,6 @@ CREATE TABLE procedures (
     status ENUM('active', 'inactive') DEFAULT 'active',
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
-
--- Modify bills table
-ALTER TABLE bills
-ADD insurance_clam_id INT NULL,
-ADD insurance_id INT NULL,
-ADD payment_reference VARCHAR(50),
-ADD due_date DATE,
-MODIFY status ENUM('pending', 'partially_paid', 'paid', 'cancelled', 'insurance_pending', 'insurance_rejected') DEFAULT 'pending'; 
-
--- Bill payments table
-CREATE TABLE payments (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    bill_id INT NOT NULL,
-    amount DECIMAL(10,2) NOT NULL,
-    payment_method ENUM('cash', 'card', 'mpesa', 'insurance', 'bank_transfer') NOT NULL,
-    payment_reference VARCHAR(50),
-    payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    status ENUM('pending', 'completed', 'failed', 'refunded') DEFAULT 'completed',
-    notes TEXT,
-    created_by VARCHAR(36) NOT NULL,
-    FOREIGN KEY (bill_id) REFERENCES bills(id),
-    FOREIGN KEY (created_by) REFERENCES users(id)
-);
-
--- Insurance claims table
-CREATE TABLE insurance_claims (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    bill_id INT NOT NULL,
-    insurance_id INT NOT NULL,
-    claim_number VARCHAR(50),
-    claim_amount DECIMAL(10,2) NOT NULL,
-    approved_amount DECIMAL(10,2),
-    status ENUM('submitted', 'pending', 'approved', 'rejected', 'paid') DEFAULT 'submitted',
-    submitted_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    response_date TIMESTAMP NULL DEFAULT NULL,
-    notes TEXT,
-    FOREIGN KEY (bill_id) REFERENCES bills(id),
-    FOREIGN KEY (insurance_id) REFERENCES insurance_providers(id)
 );
 
 -- Medication categories table
@@ -734,13 +726,6 @@ CREATE TABLE IF NOT EXISTS room_history (
     FOREIGN KEY (created_by) REFERENCES users(id)
 );
 
--- Indexes for performance
-CREATE INDEX idx_bills_insurance ON bills(insurance_id);
-CREATE INDEX idx_bills_status ON bills(status);
-CREATE INDEX idx_payments_bill ON payments(bill_id);
-CREATE INDEX idx_insurance_claims_bill ON insurance_claims(bill_id);
-CREATE INDEX idx_insurance_claims_status ON insurance_claims(status);
-
 -- Index for improving query performance
 CREATE INDEX idx_patient_queue_status ON patient_queue(status);
 CREATE INDEX idx_patient_queue_priority ON patient_queue(priority);
@@ -751,7 +736,6 @@ CREATE INDEX idx_queue_history_queue ON queue_history(queue_id);
 -- Create indexes for performance
 CREATE INDEX idx_patient_search ON patients(first_name, last_name, email, phone);
 CREATE INDEX idx_appointment_date ON appointments(appointment_datetime);
-CREATE INDEX idx_bills_date ON bills(bill_date);
 CREATE INDEX idx_medical_records_status ON medical_records(status);
 
 -- Add indexes for performance
@@ -822,9 +806,25 @@ INSERT INTO suppliers (name, contact_person, phone, email, address) VALUES
 ('MediSource Ltd', 'Jane Smith', '+254722222222', 'jane@medisource.com', 'Mombasa, Kenya'),
 ('HealthPlus Distributors', 'Mark Johnson', '+254722333333', 'mark@healthplus.com', 'Kisumu, Kenya');
 
--- Insert into users table
-INSERT INTO users (id, username, email, password_hash, role) VALUES
-(UUID(), 'Karl', 'karlgustaesimit@gmail.com', '$2a$12$vNII2SyMqyEtcAUcQxCc6.nysW4s2LCaGpMsM3d6UvCBDIM/3EbRq', 'admin');
+-- Create default admin user with password 'admin123'
+INSERT INTO users (id, username, email, password_hash, first_name, last_name, status)
+VALUES (
+    UUID(), 
+    'Karl',
+    'karlgustaesimit@gmail.com',
+    '$2a$12$vNII2SyMqyEtcAUcQxCc6.nysW4s2LCaGpMsM3d6UvCBDIM/3EbRq', -- hashed password
+    'System',
+    'Administrator',
+    'active'
+);
+
+-- Assign admin role to the admin user
+INSERT INTO user_roles (user_id, role_id)
+SELECT u.id, r.id
+FROM users u
+CROSS JOIN roles r
+WHERE u.username = 'Karl'
+AND r.name = 'admin';
 
 -- Insert departments into the departments table
 INSERT INTO departments (id, code, name, description, status) VALUES
@@ -857,6 +857,16 @@ INSERT INTO departments (id, code, name, description, status) VALUES
 (UUID(), 'LAB', 'Laboratory Services', 'Conducts diagnostic tests and analyses.', 'active'),
 (UUID(), 'PHARM', 'Pharmacy', 'Dispenses medications and provides pharmaceutical care.', 'active'),
 (UUID(), 'GENMED', 'General Medicine', 'Provides primary and non-specialized care for general medical conditions.', 'active');
+
+-- Insert default roles
+INSERT INTO roles (name, description) VALUES
+('admin', 'System administrator with full access'),
+('doctor', 'Medical doctor'),
+('nurse', 'Nursing staff'),
+('receptionist', 'Front desk staff'),
+('pharmacist', 'Pharmacy staff'),
+('lab_technician', 'Laboratory staff'),
+('cashier', 'Handles payments and billing');
 
 -- Sample trigger to update doctor status when leave is approved
 DELIMITER //

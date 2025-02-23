@@ -1,162 +1,80 @@
 <?php
-require_once(__DIR__ . '/../classes/Billing.php');
-require_once(__DIR__ . '/../config/database.php');
-require_once(__DIR__ . '/../classes/ActivityLogger.php');
+session_start();
+require_once '../config/database.php';
+require_once '../classes/Billing.php';
 
-class BillingHandler {
-    private $billing;
-    private $db;
-    private $activityLogger;
-
-    public function __construct() {
-        $this->db = new DatabaseConnection();
-        $this->billing = new Billing($this->db);
-        $this->activityLogger = new ActivityLogger($this->db);
-    }
-
-    public function handleRequest() {
-        $action = $_POST['action'] ?? $_GET['action'] ?? '';
-
-        switch ($action) {
-            case 'create':
-                $this->handleCreateBill();
-                break;
-            case 'get':
-                $this->handleGetBill();
-                break;
-            case 'list':
-                $this->handleListBills();
-                break;
-            case 'record_payment':
-                $this->handleRecordPayment();
-                break;
-            case 'get_item_price':
-                $this->handleGetItemPrice();
-                break;
-            default:
-                http_response_code(400);
-                echo json_encode(['error' => 'Invalid action']);
-        }
-    }
-
-    private function handleCreateBill() {
-        try {
-            $data = [
-                'patient_id' => $_POST['patient_id'],
-                'appointment_id' => $_POST['appointment_id'] ?? null,
-                'total_amount' => $_POST['total_amount'],
-                'notes' => $_POST['notes'] ?? '',
-                'items' => json_decode($_POST['items'], true)
-            ];
-
-            $billId = $this->billing->createBill($data);
-            
-            // Log activity
-            $this->activityLogger->logActivity([
-                'user_id' => $_SESSION['user_id'] ?? null,
-                'activity_type' => 'BILLING_CREATE',
-                'activity_description' => "Created new bill #$billId for patient #" . $data['patient_id'],
-                'ip_address' => $_SERVER['REMOTE_ADDR'],
-                'user_agent' => $_SERVER['HTTP_USER_AGENT'],
-                'entity_type' => 'bill',
-                'entity_id' => $billId,
-                'status' => 'success'
-            ]);
-
-            echo json_encode(['success' => true, 'bill_id' => $billId]);
-        } catch (Exception $e) {
-            // Log failed activity
-            $this->activityLogger->logActivity([
-                'user_id' => $_SESSION['user_id'] ?? null,
-                'activity_type' => 'BILLING_CREATE',
-                'activity_description' => "Failed to create bill: " . $e->getMessage(),
-                'ip_address' => $_SERVER['REMOTE_ADDR'],
-                'user_agent' => $_SERVER['HTTP_USER_AGENT'],
-                'entity_type' => 'bill',
-                'entity_id' => null,
-                'status' => 'error'
-            ]);
-            http_response_code(500);
-            echo json_encode(['error' => $e->getMessage()]);
-        }
-    }
-
-    private function handleGetBill() {
-        try {
-            $billId = $_GET['bill_id'];
-            $bill = $this->billing->getBill($billId);
-            echo json_encode(['success' => true, 'bill' => $bill]);
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(['error' => $e->getMessage()]);
-        }
-    }
-
-    private function handleListBills() {
-        try {
-            $bills = $this->billing->getAllBills();
-            echo json_encode(['success' => true, 'bills' => $bills]);
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(['error' => $e->getMessage()]);
-        }
-    }
-
-    private function handleRecordPayment() {
-        try {
-            $data = [
-                'bill_id' => $_POST['bill_id'],
-                'amount' => $_POST['amount'],
-                'payment_method' => $_POST['payment_method'],
-                'payment_date' => $_POST['payment_date'] ?? date('Y-m-d'),
-                'notes' => $_POST['notes'] ?? ''
-            ];
-
-            $paymentId = $this->billing->recordPayment($data);
-
-            // Log activity
-            $this->activityLogger->logActivity([
-                'user_id' => $_SESSION['user_id'] ?? null,
-                'activity_type' => 'PAYMENT_RECORD',
-                'activity_description' => "Recorded payment of " . $data['amount'] . " for bill #" . $data['bill_id'],
-                'ip_address' => $_SERVER['REMOTE_ADDR'],
-                'user_agent' => $_SERVER['HTTP_USER_AGENT'],
-                'entity_type' => 'payment',
-                'entity_id' => $paymentId,
-                'status' => 'success'
-            ]);
-
-            echo json_encode(['success' => true, 'payment_id' => $paymentId]);
-        } catch (Exception $e) {
-            // Log failed activity
-            $this->activityLogger->logActivity([
-                'user_id' => $_SESSION['user_id'] ?? null,
-                'activity_type' => 'PAYMENT_RECORD',
-                'activity_description' => "Failed to record payment: " . $e->getMessage(),
-                'ip_address' => $_SERVER['REMOTE_ADDR'],
-                'user_agent' => $_SERVER['HTTP_USER_AGENT'],
-                'entity_type' => 'payment',
-                'entity_id' => null,
-                'status' => 'error'
-            ]);
-            http_response_code(500);
-            echo json_encode(['error' => $e->getMessage()]);
-        }
-    }
-
-    private function handleGetItemPrice() {
-        try {
-            $type = $_GET['type'];
-            $id = $_GET['id'];
-            $price = $this->billing->getItemPrice($type, $id);
-            echo json_encode(['success' => true, 'price' => $price]);
-        } catch (Exception $e) {
-            http_response_code(500);
-            echo json_encode(['error' => $e->getMessage()]);
-        }
-    }
+if (!isset($_SESSION['user_id'])) {
+    header('Location: ../login.php');
+    exit;
 }
 
-// Initialize and run the handler
-$handler = new BillingHandler();
-$handler->handleRequest();
+$db = new DatabaseConnection();
+$billing = new Billing($db);
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    try {
+        $action = $_POST['action'] ?? '';
+
+        switch ($action) {
+            case 'record_payment':
+                $billingId = $_POST['billing_id'] ?? 0;
+                $data = [
+                    'payment_method' => $_POST['payment_method'] ?? '',
+                    'payment_reference' => $_POST['payment_reference'] ?? null,
+                    'amount' => $_POST['amount'] ?? 0,
+                    'notes' => $_POST['notes'] ?? null
+                ];
+
+                if (empty($billingId) || empty($data['payment_method']) || empty($data['amount'])) {
+                    throw new Exception("Required fields are missing");
+                }
+
+                $billing->recordPayment($billingId, $data);
+                $_SESSION['success'] = "Payment recorded successfully";
+                header('Location: ../views/billing/pending_bills.php');
+                exit;
+
+            case 'cancel_bill':
+                $billingId = $_POST['billing_id'] ?? 0;
+                
+                if (empty ($billingId)) {
+                    throw new Exception("Billing ID is required");
+                }
+
+                $billing->cancelBilling($billingId);
+                $_SESSION['success'] = "Bill has been cancelled successfully";
+                header('Location: ../views/billing/pending_bills.php');
+                exit;
+
+            default:
+                throw new Exception("Invalid action specified");    
+        }
+    } catch (Exception $e) {
+        $_SESSION['error'] = $e->getMessage();
+        header('Location: ' . $_SERVER['HTTP_REFERER']);
+        exit;
+    }
+} else {
+    // Handle GET requests if needed (for reports, etc.)
+    $action = $_GET['action'] ?? '';
+    
+    switch ($action) {
+        case 'view_receipt':
+            $billingId = $_GET['id'] ?? 0;
+
+            if (empty($billingId)) {
+                $_SESSION['error'] = "Billing ID is required";
+                header('Location: ../views/billing/paid_bills.php');
+                exit;
+            }
+
+            // Redirect to receipt page
+            header('LocationL ../views/billing/receipt.php?id=' . $billingId);
+            exit;
+
+        default:
+            $_SESSION['error'] = "Invalid request";
+            header('Location: ../index.php');
+            exit;    
+    }
+}

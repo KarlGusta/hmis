@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../config/database.php';
 require_once __DIR__ . '/Room.php';
 require_once __DIR__ . '/MedicalRecord.php';
+require_once __DIR__ . '/Billing.php';
 
 class Consultation {
     private $db;
@@ -91,6 +92,10 @@ class Consultation {
             // Get consultation details
             $consultation = $this->getConsultation($consultationId);
 
+            if (!$consultation) {
+                throw new Exception("Consultation not found");
+            }
+
             // Update consultation status
             $query = "UPDATE {$this->table}
                      SET status = 'completed',
@@ -117,15 +122,23 @@ class Consultation {
                 $this->room->releaseRoom($roomRecord['room_id']);
             }
 
+            // Create billing record for consultation
+            $billing = new Billing($this->db);
+            $billingData = $billing->createConsultationBill($consultationId);
+
             // Log consultation history
             $this->logConsultationHistory($consultationId, 'completed');
 
             $this->db->commit();
-            return true;
+            return [
+                'success' => true,
+                'message' => 'Consultation completed successfully',
+                'billing' => $billingData
+            ];
 
         } catch (Exception $e) {
             $this->db->rollback();
-            throw $e;
+            throw new Exception("Failed to complete consultation: " . $e->getMessage());
         }
     }
 

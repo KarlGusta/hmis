@@ -26,6 +26,7 @@ class PathConfig
                         'items' => '/views/items/',
                         'queue' => '/views/queue/',
                         'auth' => '/views/auth/',
+                        'users' => '/views/users/',
                         'staff' => '/views/staff/',
                         'departments' => '/views/departments/',
                         'doctors' => '/views/doctors/',
@@ -86,9 +87,80 @@ class PathConfig
                 ]
             ],
             'production' => [
-                'base_path' => 'https://www.rovergigs.com/hmis', // Update this with your production base path
+                'base_path' => 'https://all-lands-digital-collins.trycloudflare.com/hmis', // Update this with your production base path
                 'paths' => [
                     // Development paths go here. Copy and paste from the development paths above.
+                    'home' => '/', 
+                    'views' => [
+                        'appointments' => '/views/appointments/',
+                        'patients' => '/views/patients/',
+                        'triage' => '/views/triage/',
+                        'outpatient' => '/views/outpatient/',
+                        'consultations' => '/views/consultations/',
+                        'prescriptions' => '/views/prescriptions/',
+                        'billing' => '/views/billing/',
+                        'room' => '/views/room/',
+                        'items' => '/views/items/',
+                        'queue' => '/views/queue/',
+                        'auth' => '/views/auth/',                        
+                        'users' => '/views/users/',
+                        'staff' => '/views/staff/',
+                        'departments' => '/views/departments/',
+                        'doctors' => '/views/doctors/',
+                        'medications' => '/views/medications/',
+                        'pharmacy' => '/views/pharmacy/',
+                        'lab' => '/views/lab/',
+                        'nutrition' => '/views/nutrition/',
+                        'mch' => '/views/mch/',
+                        'dental' => '/views/dental/',
+                        'physio' => '/views/physio/',
+                        'theater' => '/views/theater/',
+                        'inpatient' => '/views/inpatient/',
+                        'stores' => '/views/stores/',
+                        'insurance' => '/views/insurance/',
+                        'accounting' => '/views/accounting/',
+                        'moh' => '/views/moh/',
+                        'activities' => '/views/activities/'
+                    ],
+                    'handlers' => '/handlers/',
+                    'auth' => [
+                        'login' => '/views/auth/login.php',
+                        'logout' => '/views/auth/logout.php'
+                    ],
+                    'classes' => [
+                        'department' => '/classes/Department.php',
+                        'leave' => '/classes/Leave.php',
+                        'user' => '/classes/User.php',
+                        'PatientQueue' => '/classes/PatientQueue.php',
+                        'Triage' => '/classes/Triage.php',
+                        'VitalSigns' => '/classes/VitalSigns.php'
+                    ],
+                    'config' => [
+                        'config' => '/config/config.php',
+                        'database' => '/config/database.php',
+                        'paths' => '/config/paths.php'
+                    ],
+                    'assets' => [
+                        'dist' => '/dist/',
+                        'css' => '/assets/css/'
+                    ],
+                    'includes' => [
+                        'auth' => '/includes/auth.php',
+                        'functions' => '/includes/functions.php'
+                    ],
+                    'public' => [
+                        'css' => '/public/css/',
+                        'images' => '/public/images/',
+                        'js' => '/public/js/',
+                        'sponsor_images' => '/src/img/logo/'
+                    ],
+                    'templates' => [
+                        'footer_scripts' => '/templates/footer_scripts.php',
+                        'header' => '/templates/header.php',
+                        'main_footer' => '/templates/main_footer.php',
+                        'navbar' => '/templates/navbar.php',
+                        'sidebar' => '/templates/sidebar.php'
+                    ]
             ]
             ]
         ];
